@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import joblib
@@ -7,12 +8,10 @@ import requests
 app = Flask(__name__, template_folder='templates')
 CORS(app)
 
+solar_model = joblib.load("solar.pkl")
+wind_model = joblib.load("wind.pkl")
 
-solar_model = joblib.load("solar.pkl")  # Solar model
-wind_model = joblib.load("wind.pkl")       # Wind model
-
-
-OPENWEATHER_API_KEY = "ea3c5021f555aa4a1bb2e609fabf6a1f"       # you can replace it by yours if it is not active
+OPENWEATHER_API_KEY = "your-api-key"
 
 @app.route('/')
 def index():
@@ -36,11 +35,9 @@ def predict_power_from_location():
     air_density = weather_data['main'].get('pressure', 1013) / (287.05 * (temperature + 273.15)) 
     solar_irradiance = max(0, 1000 - cloud_cover * 10)
 
-    # Solar
     solar_features = np.array([[solar_irradiance, temperature, wind_speed, humidity]])
     predicted_power_per_m2 = solar_model.predict(solar_features)[0]
 
-    # Wind
     wind_features = np.array([[wind_speed, air_density, temperature, humidity]])
     predicted_wind_pct = wind_model.predict(wind_features)[0]
 
@@ -55,8 +52,7 @@ def predict_power_from_location():
         'air_density': round(air_density, 4),
         'predicted_wind_power_pct': predicted_wind_pct
     })
-if __name__ == '__main__':
-    import os
-    port = int(os.environ.get("PORT", 10000))
-    app.run(debug=True, host="0.0.0.0", port=port)
 
+if __name__ == '__main__':
+    port = int(os.environ["PORT"])  # No default fallback
+    app.run(debug=True, host="0.0.0.0", port=port)
