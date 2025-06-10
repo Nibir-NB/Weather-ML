@@ -55,9 +55,8 @@ def predict_power_from_location():
         'air_density': round(air_density, 4),
         'predicted_wind_power_pct': predicted_wind_pct
     })
-
 if __name__ == '__main__':
-    #app.run(debug=True)
-import os
-port = int(os.environ.get("PORT", 10000))
-app.run(debug=True, host="0.0.0.0", port=port)
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(debug=True, host="0.0.0.0", port=port)
+
