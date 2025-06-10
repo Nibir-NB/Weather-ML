@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: power-predictor
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend.py
+    envVars:
+      - key: OPENWEATHER_API_KEY
+        value: ea3c5021f555aa4a1bb2e609fabf6a1f
