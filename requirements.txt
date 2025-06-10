@@ -2,6 +2,7 @@ flask
 flask-cors
 joblib
 pandas
+gunicorn
 scikit-learn==1.6.1
 matplotlib
 requests
