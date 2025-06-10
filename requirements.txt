@@ -2,7 +2,7 @@ flask
 flask-cors
 joblib
 pandas
-scikit-learn
+scikit-learn==1.6.1
 matplotlib
 requests
 numpy
