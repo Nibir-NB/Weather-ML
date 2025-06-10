@@ -1,8 +1,10 @@
 flask
 flask-cors
 joblib
-numpy==1.24.4
 pandas
 scikit-learn
 matplotlib
 requests
+numpy
+
+
