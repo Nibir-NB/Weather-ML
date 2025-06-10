@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Power Predictor</title>
+</head>
+<body>
+  <h2>Solar and Wind Power Prediction</h2>
+  <form id="placeForm">
+    <label for="place">Enter Place:</label>
+    <input type="text" id="place" name="place" required>
+    <button type="submit">Predict</button>
+  </form>
+  <pre id="output"></pre>
+
+  <script>
+    document.getElementById('placeForm').onsubmit = async function (e) {
+      e.preventDefault();
+      const place = document.getElementById('place').value;
+      const response = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ place })
+      });
+      const data = await response.json();
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+    };
+  </script>
+</body>
+</html>
