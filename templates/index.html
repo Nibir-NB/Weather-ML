@@ -1,30 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Power Predictor</title>
-</head>
-<body>
-  <h2>Solar and Wind Power Prediction</h2>
-  <form id="placeForm">
-    <label for="place">Enter Place:</label>
-    <input type="text" id="place" name="place" required>
-    <button type="submit">Predict</button>
-  </form>
-  <pre id="output"></pre>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      --text: white;
+    }
 
+    body.light {
+      --bg: #f9fafb;
+      --text: #1f2937;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .glass {
+      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    body.light .glass {
+      background: white;
+    }
+
+    .suggestions {
+      max-height: 150px;
+      overflow-y: auto;
+      position: absolute;
+      z-index: 10;
+      background-color: white;
+      color: black;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4 relative">
+
+  <!-- Brand -->
+  <div id="brand" class="absolute top-4 left-4 font-bold text-lg text-white">AZURE POWER</div>
+
+  <!-- Theme Toggle Button -->
+  <button onclick="toggleTheme()"
+          class="absolute top-4 right-4 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl">
+    Change Theme
+  </button>
+
+  <!-- Main Card -->
+  <div class="glass w-full max-w-3xl p-8 rounded-2xl shadow-xl">
+    <h1 class="text-2xl font-bold mb-6 text-center">Solar & Wind Energy Predictor</h1>
+
+    <!-- Input -->
+    <div class="relative">
+      <input type="text" id="placeInput" placeholder="Enter city (e.g., Delhi)"
+             oninput="showSuggestions()"
+             class="w-full p-3 rounded-lg border border-gray-300 text-black focus:outline-none" />
+      <ul id="suggestionsList" class="suggestions hidden w-full mt-1"></ul>
+    </div>
+
+    <button onclick="predict()"
+            class="mt-4 w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-lg">
+      Predict
+    </button>
+
+    <!-- Result Panel -->
+    <div id="result" class="mt-6 p-4 rounded-xl bg-white/90 shadow-md text-black hidden"></div>
+
+    <!-- Recent Searches -->
+    <div id="recentSearches" class="mt-4 text-sm text-gray-100"></div>
+  </div>
+
+  <!-- Script -->
   <script>
-    document.getElementById('placeForm').onsubmit = async function (e) {
-      e.preventDefault();
-      const place = document.getElementById('place').value;
-      const response = await fetch('/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ place })
+    const placeInput = document.getElementById("placeInput");
+    const suggestionsList = document.getElementById("suggestionsList");
+
+    function toggleTheme() {
+      document.body.classList.toggle("light");
+      const brand = document.getElementById("brand");
+      if (document.body.classList.contains("light")) {
+        brand.classList.remove("text-white");
+        brand.classList.add("text-black");
+      } else {
+        brand.classList.remove("text-black");
+        brand.classList.add("text-white");
+      }
+    }
+
+    function showSuggestions() {
+      const input = placeInput.value.toLowerCase();
+      const cities = JSON.parse(localStorage.getItem("recentCities") || "[]");
+      suggestionsList.innerHTML = "";
+
+      if (input === "") {
+        suggestionsList.classList.add("hidden");
+        return;
+      }
+
+      const matches = cities.filter(city => city.toLowerCase().startsWith(input));
+
+      if (matches.length === 0) {
+        suggestionsList.classList.add("hidden");
+        return;
+      }
+
+      matches.forEach(match => {
+        const li = document.createElement("li");
+        li.textContent = match;
+        li.className = "px-4 py-2 hover:bg-gray-200 cursor-pointer";
+        li.onclick = () => {
+          placeInput.value = match;
+          suggestionsList.classList.add("hidden");
+        };
+        suggestionsList.appendChild(li);
       });
-      const data = await response.json();
-      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
-    };
+
+      suggestionsList.classList.remove("hidden");
+    }
+
+    function saveSearch(city) {
+      let cities = JSON.parse(localStorage.getItem("recentCities") || "[]");
+      if (!cities.includes(city)) {
+        cities.unshift(city);
+        if (cities.length > 5) cities.pop();
+        localStorage.setItem("recentCities", JSON.stringify(cities));
+      }
+    }
+
+    function showRecentSearches() {
+      const cities = JSON.parse(localStorage.getItem("recentCities") || "[]");
+      if (cities.length === 0) {
+        document.getElementById("recentSearches").innerHTML = "";
+        return;
+      }
+
+      const html = `Recent: ` + cities.map(city =>
+        `<span onclick="useRecent('${city}')"
+               class="inline-block bg-white/20 px-3 py-1 m-1 rounded-lg cursor-pointer hover:bg-white/30">
+          ${city}
+        </span>`).join("");
+
+      document.getElementById("recentSearches").innerHTML = html;
+    }
+
+    function useRecent(city) {
+      placeInput.value = city;
+      predict();
+    }
+
+    async function predict() {
+      const place = placeInput.value.trim();
+      const resultDiv = document.getElementById("result");
+
+      if (!place) return;
+
+      resultDiv.classList.remove("hidden");
+      resultDiv.innerHTML = "⏳ Loading...";
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ place })
+        });
+
+        const data = await response.json();
+
+        if (response.status !== 200) {
+          resultDiv.innerHTML = <div class="text-red-600">❌ ${data.error}</div>;
+          return;
+        }
+
+        resultDiv.innerHTML = `
+          <div class="mb-4">
+            <h2 class="text-lg font-semibold mb-1">📍 Location: ${data.place}</h2>
+            <p>☁ Cloud Cover: ${data.cloud_cover}%</p>
+            <p>🌡 Temperature: ${data.temperature}°C</p>
+            <p>💧 Humidity: ${data.humidity}%</p>
+            <p>🌬 Wind Speed: ${data.wind_speed} m/s</p>
+            <p>🔸 Air Density: ${data.air_density} kg/m³</p>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="text-md font-semibold mb-1">☀ Solar Power</h3>
+            <p>Solar Irradiance: ${data.solar_irradiance} W/m²</p>
+            <p>Predicted Power per m²: <strong>${data.predicted_power_per_m2.toFixed(2)} W</strong></p>
+            <p>Total Panel Power (area = ${data.panel_area} m²): <strong>${(data.predicted_power_per_m2 * data.panel_area).toFixed(2)} W</strong></p>
+          </div>
+
+          <div>
+            <h3 class="text-md font-semibold mb-1">🌀 Wind Power</h3>
+            <p>Predicted Wind Turbine Output: <strong>${data.predicted_wind_power_pct.toFixed(2)}%</strong> of max capacity</p>
+          </div>
+        `;
+
+        saveSearch(place);
+        showRecentSearches();
+        showSuggestions();
+
+      } catch (err) {
+        console.error(err);
+        resultDiv.innerHTML = <div class="text-red-600">❌ Failed to connect to backend</div>;
+      }
+    }
+
+    showRecentSearches();
   </script>
 </body>
 </html>
