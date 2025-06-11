@@ -3,17 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <title>Power Predictor</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #eef2f3;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h2 {
+      margin-top: 40px;
+      color: #333;
+    }
+
+    form {
+      background-color: #fff;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    label {
+      font-weight: bold;
+      color: #444;
+    }
+
+    input[type="text"] {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      width: 200px;
+    }
+
+    button {
+      padding: 10px 16px;
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
+    #output {
+      margin-top: 30px;
+      background-color: #f8f9fa;
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 80%;
+      max-width: 600px;
+      white-space: pre-wrap;
+      border-radius: 10px;
+      color: #222;
+      font-size: 16px;
+    }
+
+    @media (max-width: 480px) {
+      form {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      input[type="text"], button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h2>Solar and Wind Power Prediction</h2>
+  <h2>🔋 Solar and Wind Power Prediction</h2>
 
   <form id="placeForm">
-    <label for="place">Enter Place:</label>
+    <label for="place">🌍 Enter Place:</label>
     <input type="text" id="place" name="place" required>
     <button type="submit">Predict</button>
   </form>
 
-  <pre id="output" style="margin-top: 20px; background: #f4f4f4; padding: 10px; border: 1px solid #ccc;"></pre>
+  <pre id="output"></pre>
 
   <script>
     document.getElementById('placeForm').onsubmit = async function (e) {
